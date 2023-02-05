@@ -30,7 +30,6 @@ public class CmisClient implements ICmisClient {
 
     private Session session;
 
-
     public CmisClient(final CmisServerProperties cmisServerProperties) {
         this.cmisServerProperties = cmisServerProperties;
     }
