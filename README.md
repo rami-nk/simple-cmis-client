@@ -5,7 +5,7 @@
 
 1. Start in-memory CMIS-server:
 ```shell
-docker-compose -f /stack/cmis-server/docker-compose.yml up -d
+docker-compose -f stack/cmis-server/docker-compose.yml up -d
 ```
 
 2. Start Application
