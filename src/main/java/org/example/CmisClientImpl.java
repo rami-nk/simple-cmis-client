@@ -15,7 +15,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,8 +84,7 @@ public class CmisClientImpl implements CmisClient {
     @Override
     public void deleteDocument(Folder folder, String name) {
         try {
-            CmisObject object = session.getObjectByPath(folder.getPath()
-                    + name);
+            CmisObject object = session.getObjectByPath(folder.getPath() + name);
             Document delDoc = (Document) object;
             delDoc.delete(true);
         } catch (CmisObjectNotFoundException e) {
@@ -91,27 +93,42 @@ public class CmisClientImpl implements CmisClient {
     }
 
     @Override
-    public void createDocument(Folder folder, String name) {
-        Map<String, String> props = new HashMap<>();
-        props.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
-        props.put(PropertyIds.NAME, name);
-        String content = "aegif Mind Share Leader Generating New Paradigms by aegif corporation.";
-        byte[] buf;
-        buf = content.getBytes(StandardCharsets.UTF_8);
-        ByteArrayInputStream input = new ByteArrayInputStream(buf);
+    public void createDocument(Folder folder, String name, byte[] content) {
+        var properties = getObjectProperties(name, CmisObjectType.DOCUMENT);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
         ContentStream contentStream = session.getObjectFactory()
-                .createContentStream(name, buf.length,
-                        "text/plain; charset=UTF-8", input);
-        folder.createDocument(props, contentStream, VersioningState.NONE);
+                .createContentStream(name, content.length,
+                        "application/octet-stream", inputStream);
+        folder.createDocument(properties, contentStream, VersioningState.NONE);
         log.info("Created document: {}.", name);
     }
 
     @Override
     public Folder createFolder(Folder folder, String name) {
+        var properties = getObjectProperties(name, CmisObjectType.FOLDER);
+        return folder.createFolder(properties);
+    }
+
+    @Override
+    public byte[] getContent(Folder folder, String name) {
+        Path path = Paths.get(folder.getPath(), name);
+        CmisObject object = session.getObjectByPath(path.toString());
+        Document document = (Document) object;
+        ContentStream contentStream = document.getContentStream();
+        byte[] bytes;
+        try {
+            bytes = contentStream.getStream().readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        log.info("Content of file {}: {}.", path, new String(bytes, StandardCharsets.UTF_8));
+        return bytes;
+    }
+
+    private Map<String, String> getObjectProperties(String name, CmisObjectType objectType) {
         Map<String, String> props = new HashMap<>();
-        props.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
+        props.put(PropertyIds.OBJECT_TYPE_ID, objectType.getType());
         props.put(PropertyIds.NAME, name);
-        Folder newFolder = folder.createFolder(props);
-        return newFolder;
+        return props;
     }
 }

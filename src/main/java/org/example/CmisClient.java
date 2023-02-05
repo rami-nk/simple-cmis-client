@@ -14,7 +14,9 @@ public interface CmisClient {
 
     void deleteDocument(Folder folder, String name);
 
-    void createDocument(Folder folder, String name);
+    void createDocument(Folder folder, String name, byte[] content);
 
     Folder createFolder(Folder folder, String name);
+
+    byte[] getContent(Folder folder, String name);
 }

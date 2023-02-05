@@ -17,8 +17,12 @@ public class Application {
         client.connect();
         var root = client.getRootFolder();
 
-        client.deleteFolder(root, "TEST_FOLDER");
-        var folder = client.createFolder(root, "TEST_FOLDER");
-        client.createDocument(folder, "TEST_DOC");
+        final String folderName = "TEST_FOLDER";
+        final String documentName = "TEST_DOCUMENT.txt";
+
+        client.deleteFolder(root, folderName);
+        var folder = client.createFolder(root, folderName);
+        client.createDocument(folder, documentName, "Hello World".getBytes());
+        var content = client.getContent(folder, documentName);
     }
 }
