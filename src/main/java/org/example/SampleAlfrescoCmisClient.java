@@ -1,5 +1,6 @@
 package org.example;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -20,20 +21,30 @@ import java.util.Map;
 
 /**
  * Connects to read-only alfresco test cmis server.
- * Code from: https://gist.github.com/mryoshio/1465530
+ * Code from: <a href="https://gist.github.com/mryoshio/1465530">github</a>
  */
+@Slf4j
 public class SampleAlfrescoCmisClient {
 
-    /**
-     * This alfresco cmis server is just read-only.
-     * Url from https://www.alfresco.com/whitepaper/cmis
-     */
-    private static final String CRM_URL = "https://cmis.alfresco.com/api/-default-/public/cmis/versions/1.1/atom";
+    private static final String CRM_URL = "http://localhost:8888/chemistry-opencmis-server-inmemory-1.0.0-SNAPSHOT/atom11";
 
     private static Session session;
 
     public static void main(String[] args) {
-        Folder root = connect();
+        var root = connect();
+
+        final String testFolder = "TEST_FOLDER";
+        final String testDocument = "TEST_DOCUMENT";
+
+        // Make sure folder is deleted
+        cleanup(root, testFolder);
+
+        var folder = createFolder(root, testFolder);
+        createDocument(folder, testDocument);
+
+        for (CmisObject child : root.getChildren()) {
+            System.out.println(child.getName());
+        }
     }
 
     /**
@@ -44,13 +55,12 @@ public class SampleAlfrescoCmisClient {
     private static Folder connect() {
         SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
         Map<String, String> parameter = new HashMap<>();
+
         parameter.put(SessionParameter.USER, "admin");
         parameter.put(SessionParameter.PASSWORD, "admin");
 
-        parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
         parameter.put(SessionParameter.ATOMPUB_URL, CRM_URL);
-        parameter.put(SessionParameter.AUTH_HTTP_BASIC, "true");
-        parameter.put(SessionParameter.COOKIES, "true");
+        parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
         Repository repository = sessionFactory.getRepositories(parameter).get(0);
         session = repository.createSession();
@@ -132,7 +142,7 @@ public class SampleAlfrescoCmisClient {
         ContentStream contentStream = session.getObjectFactory()
                 .createContentStream(newDocName, buf.length,
                         "text/plain; charset=UTF-8", input);
-        target.createDocument(props, contentStream, VersioningState.MAJOR);
+        target.createDocument(props, contentStream, VersioningState.NONE);
     }
 
     /**
