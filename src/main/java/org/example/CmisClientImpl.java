@@ -48,7 +48,7 @@ public class CmisClientImpl implements CmisClient {
 
         Repository repository = sessionFactory.getRepositories(parameter).get(0);
         session = repository.createSession();
-        log.info("Session created");
+        log.info("Session created.");
     }
 
     @Override
@@ -57,10 +57,10 @@ public class CmisClientImpl implements CmisClient {
             CmisObject object = session.getObjectByPath(folder.getPath() + name);
             Folder delFolder = (Folder) object;
             delFolder.deleteTree(true, UnfileObject.DELETE, true);
+            log.info("Deleted folder: {}.", name);
         } catch (CmisObjectNotFoundException e) {
-            log.warn("Folder not found.");
+            log.warn("Folder {} not found.", name);
         }
-        log.info("Folder {} deleted", name);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class CmisClientImpl implements CmisClient {
             Document delDoc = (Document) object;
             delDoc.delete(true);
         } catch (CmisObjectNotFoundException e) {
-            log.warn("Document is not found: {}", name);
+            log.warn("Document not found: {}.", name);
         }
     }
 
@@ -93,8 +93,6 @@ public class CmisClientImpl implements CmisClient {
         Map<String, String> props = new HashMap<>();
         props.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
         props.put(PropertyIds.NAME, name);
-        System.out.println();
-        log.info("This is a test document: {}", name);
         String content = "aegif Mind Share Leader Generating New Paradigms by aegif corporation.";
         byte[] buf;
         buf = content.getBytes(StandardCharsets.UTF_8);
@@ -103,6 +101,7 @@ public class CmisClientImpl implements CmisClient {
                 .createContentStream(name, buf.length,
                         "text/plain; charset=UTF-8", input);
         folder.createDocument(props, contentStream, VersioningState.NONE);
+        log.info("Created document: {}.", name);
     }
 
     @Override
