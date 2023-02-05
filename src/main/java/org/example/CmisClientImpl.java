@@ -59,7 +59,8 @@ public class CmisClientImpl implements CmisClient {
     @Override
     public void deleteFolder(Folder folder, String name) {
         try {
-            CmisObject object = session.getObjectByPath(folder.getPath() + name);
+            var path = Paths.get(folder.getPath(), name);
+            CmisObject object = session.getObjectByPath(path.toString());
             Folder delFolder = (Folder) object;
             delFolder.deleteTree(true, UnfileObject.DELETE, true);
             log.info("Deleted folder: {}.", name);
@@ -71,12 +72,12 @@ public class CmisClientImpl implements CmisClient {
     @Override
     public void listFolder(int depth, Folder folder) {
         String indent = StringUtils.repeat("\t", depth);
-        for (CmisObject o : folder.getChildren()) {
-            if (BaseTypeId.CMIS_DOCUMENT.equals(o.getBaseTypeId())) {
-                log.info("{} [Document] {}", indent, o.getName());
-            } else if (BaseTypeId.CMIS_FOLDER.equals(o.getBaseTypeId())) {
-                log.info("{} [Folder] {}", indent, o.getName());
-                listFolder(++depth, (Folder) o);
+        for (CmisObject object : folder.getChildren()) {
+            if (BaseTypeId.CMIS_DOCUMENT.equals(object.getBaseTypeId())) {
+                log.info("{} [Document] {}", indent, object.getName());
+            } else if (BaseTypeId.CMIS_FOLDER.equals(object.getBaseTypeId())) {
+                log.info("{} [Folder] {}", indent, object.getName());
+                listFolder(++depth, (Folder) object);
             }
         }
     }
@@ -87,6 +88,7 @@ public class CmisClientImpl implements CmisClient {
             CmisObject object = session.getObjectByPath(folder.getPath() + name);
             Document delDoc = (Document) object;
             delDoc.delete(true);
+            log.warn("Deleted document: {}.", name);
         } catch (CmisObjectNotFoundException e) {
             log.warn("Document not found: {}.", name);
         }
@@ -106,7 +108,9 @@ public class CmisClientImpl implements CmisClient {
     @Override
     public Folder createFolder(Folder folder, String name) {
         var properties = getObjectProperties(name, CmisObjectType.FOLDER);
-        return folder.createFolder(properties);
+        var newFolder = folder.createFolder(properties);
+        log.info("Created folder: {}.", name);
+        return newFolder;
     }
 
     @Override
