@@ -1,5 +1,5 @@
-# simple-cmis-client
-*Implementation of a simple CMIS client connecting to a in-memory CMIS-server.*
+# Simple CMIS-Client
+*Implementation of a simple CMIS-client connecting to an in-memory CMIS-server.*
 
 ## Getting Started
 
@@ -8,5 +8,5 @@
 docker-compose -f stack/cmis-server/docker-compose.yml up -d
 ```
 
-2. Start Application
+2. Start Application to create Client and connect to Server
 
