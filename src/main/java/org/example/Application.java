@@ -12,7 +12,7 @@ public class Application {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
 
-        var client = context.getBean(CmisClient.class);
+        var client = context.getBean(ICmisClient.class);
 
         client.connect();
         var root = client.getRootFolder();
